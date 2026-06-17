@@ -99,7 +99,11 @@ function hasFencedCodeBlock(text: string) {
 }
 
 function normalizeOpenTargetLink(value: string) {
-  const withoutHash = value.trim().split("#")[0] ?? "";
+  const trimmed = value.trim();
+  if (/^(https?|wss?):\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  const withoutHash = trimmed.split("#")[0] ?? "";
   const withoutQuery = withoutHash.split("?")[0] ?? "";
   let decoded = withoutQuery;
 
@@ -111,7 +115,8 @@ function normalizeOpenTargetLink(value: string) {
 
   if (/^file:\/\//i.test(decoded)) {
     try {
-      decoded = new URL(decoded).pathname;
+      const pathname = new URL(decoded).pathname;
+      decoded = /^\/[a-zA-Z]:/.test(pathname) ? pathname.slice(1) : pathname;
     } catch {
       decoded = decoded.replace(/^file:\/\//i, "");
     }
